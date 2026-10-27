@@ -1,0 +1,20 @@
+-- Seed platform staff roles (run in SQL Editor after replacing USER_UUID).
+-- Reviewer and approver MUST be different users for production Verify workflows.
+--
+-- Example:
+--   insert into public.platform_roles (user_id, role) values
+--     ('11111111-1111-1111-1111-111111111111', 'super_admin'),
+--     ('11111111-1111-1111-1111-111111111111', 'verification_reviewer')
+--   on conflict do nothing;
+--
+--   insert into public.platform_roles (user_id, role) values
+--     ('22222222-2222-2222-2222-222222222222', 'verification_approver')
+--   on conflict do nothing;
+
+-- Replace with real auth.users ids from Authentication → Users:
+-- insert into public.platform_roles (user_id, role) values
+--   ('YOUR_REVIEWER_USER_UUID', 'verification_reviewer'),
+--   ('YOUR_REVIEWER_USER_UUID', 'operations'),
+--   ('YOUR_APPROVER_USER_UUID', 'verification_approver'),
+--   ('YOUR_APPROVER_USER_UUID', 'super_admin')
+-- on conflict do nothing;

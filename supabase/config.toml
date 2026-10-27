@@ -1,0 +1,11 @@
+# Minimal Supabase CLI config for Corgania (local tooling).
+# Project ref: jegnjxnupblstmnbgkam
+project_id = "jegnjxnupblstmnbgkam"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+major_version = 15
