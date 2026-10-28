@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/primitives";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Label } from "@/components/ui/primitives";
 import { createClient } from "@/lib/supabase/client";
 import { changePasswordSchema, setPasswordSchema } from "@/lib/validation/schemas";
 
@@ -85,10 +86,9 @@ export function PasswordChangeForm({
       {mode === "change" && (
         <div>
           <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
-          <Input
+          <PasswordInput
             id="currentPassword"
             name="currentPassword"
-            type="password"
             required
             autoComplete="current-password"
             minLength={8}
@@ -97,10 +97,9 @@ export function PasswordChangeForm({
       )}
       <div>
         <Label htmlFor="newPassword">{t("newPassword")}</Label>
-        <Input
+        <PasswordInput
           id="newPassword"
           name="newPassword"
-          type="password"
           required
           autoComplete="new-password"
           minLength={8}
@@ -109,10 +108,9 @@ export function PasswordChangeForm({
       </div>
       <div>
         <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           required
           autoComplete="new-password"
           minLength={8}

@@ -15,6 +15,8 @@ export type SessionContext = {
   userId: string;
   orgId: string | null;
   canTrade: boolean;
+  canBuy: boolean;
+  canSell: boolean;
   isStaff: boolean;
   roles: PlatformRole[];
   roleLabel: string;
@@ -23,8 +25,18 @@ export type SessionContext = {
 type MembershipRow = {
   organization_id: string;
   organizations:
-    | { membership_status: string; membership_expires_at: string | null }
-    | { membership_status: string; membership_expires_at: string | null }[]
+    | {
+        membership_status: string;
+        membership_expires_at: string | null;
+        can_buy?: boolean | null;
+        can_sell?: boolean | null;
+      }
+    | {
+        membership_status: string;
+        membership_expires_at: string | null;
+        can_buy?: boolean | null;
+        can_sell?: boolean | null;
+      }[]
     | null;
 };
 
@@ -53,7 +65,7 @@ export async function requireSession(): Promise<SessionContext | null> {
   const [{ data: memberships }, { data: staff }] = await Promise.all([
     supabase
       .from("organization_members")
-      .select("organization_id, organizations(membership_status, membership_expires_at)")
+      .select("organization_id, organizations(membership_status, membership_expires_at, can_buy, can_sell)")
       .eq("user_id", user.id)
       .eq("is_active", true),
     supabase.from("platform_roles").select("role").eq("user_id", user.id),
@@ -68,11 +80,18 @@ export async function requireSession(): Promise<SessionContext | null> {
       (!org.membership_expires_at || new Date(org.membership_expires_at) > new Date())
     );
   });
+  const approvedOrg = approved
+    ? Array.isArray(approved.organizations)
+      ? approved.organizations[0]
+      : approved.organizations
+    : null;
 
   return {
     userId: user.id,
     orgId: approved?.organization_id ?? rows[0]?.organization_id ?? null,
     canTrade: Boolean(approved),
+    canBuy: Boolean(approvedOrg?.can_buy),
+    canSell: Boolean(approvedOrg?.can_sell),
     isStaff: roles.length > 0,
     roles,
     roleLabel: primaryRoleLabel(roles),

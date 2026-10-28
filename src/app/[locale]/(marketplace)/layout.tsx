@@ -2,6 +2,7 @@
 import { getTranslations } from "next-intl/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { MobileSidebarMenu, SidebarNav, type SidebarItem } from "@/components/layout/sidebar-nav";
 import { SetupGate } from "@/components/shared/setup-gate";
 import { Link } from "@/i18n/navigation";
 import { requireSession } from "@/lib/auth/guards";
@@ -11,50 +12,48 @@ export default async function MarketplaceLayout({ children }: { children: React.
   const t = await getTranslations("marketplace");
   const c = await getTranslations("common");
   const a = await getTranslations("account");
-  const links: [string, string][] = [
-    [t("navHome"), "/marketplace"],
-    [t("products"), "/marketplace/products"],
-    [t("suppliers"), "/marketplace/suppliers"],
-    [t("rfqs"), "/marketplace/rfqs"],
-    [`${t("dashboard")} · ${c("buyerRole")}`, "/dashboard/buyer"],
-    [`${t("dashboard")} · ${c("sellerRole")}`, "/dashboard/seller"],
-    [t("messages"), "/dashboard/messages"],
-    [t("orders"), "/dashboard/orders"],
-    [t("settings"), "/dashboard/settings"],
-  ];
 
   if (!isSupabaseConfigured) {
     return (
-      <>
+      <div className="min-h-dvh overflow-x-hidden bg-surface">
         <SiteBar label={t("membersOnly")} accountLabel={a("navLabel")} />
         <SetupGate area="Corgania Marketplace" />
-      </>
+      </div>
     );
   }
   const s = await requireSession();
   if (!s || !s.canTrade) {
     return (
-      <>
+      <div className="min-h-dvh overflow-x-hidden bg-surface">
         <SiteBar label={t("membersOnly")} accountLabel={a("navLabel")} />
         <SetupGate area="Corgania Marketplace" />
-      </>
+      </div>
     );
   }
 
+  const items: SidebarItem[] = [
+    { href: "/marketplace", label: t("navHome"), exact: true },
+    { href: "/marketplace/products", label: t("products") },
+    { href: "/marketplace/suppliers", label: t("suppliers") },
+    { href: "/marketplace/rfqs", label: t("rfqs") },
+  ];
+  if (s.canBuy) items.push({ href: "/dashboard/buyer", label: `${t("dashboard")} · ${c("buyerRole")}` });
+  if (s.canSell) items.push({ href: "/dashboard/seller", label: `${t("dashboard")} · ${c("sellerRole")}` });
+  items.push(
+    { href: "/dashboard/messages", label: t("messages") },
+    { href: "/dashboard/orders", label: t("orders") },
+    { href: "/dashboard/settings", label: t("settings") },
+  );
+
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="flex h-dvh flex-col overflow-hidden bg-surface">
       <SiteBar label={t("membersOnly")} accountLabel={a("navLabel")} />
-      <div className="mx-auto flex max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        <aside className="hidden w-56 shrink-0 lg:block">
-          <nav className="sticky top-24 space-y-1" aria-label="Marketplace">
-            {links.map(([l, h]) => (
-              <Link key={h} href={h} className="block rounded-md px-3 py-2 text-sm font-medium text-ink hover:bg-white hover:text-brand-blue">
-                {l}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 overflow-hidden">
+        <SidebarNav items={items} ariaLabel="Marketplace" />
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <MobileSidebarMenu items={items} ariaLabel="Marketplace" />
+          {children}
+        </main>
       </div>
     </div>
   );
@@ -62,17 +61,27 @@ export default async function MarketplaceLayout({ children }: { children: React.
 
 function SiteBar({ label, accountLabel }: { label: string; accountLabel: string }) {
   return (
-    <header className="border-b border-line bg-white">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/">
-          <Image src="/brand/corgania-logo.png" alt="Corgania" width={340} height={136} className="h-10 w-auto sm:h-12" />
+    <header className="z-40 shrink-0 border-b border-line bg-white">
+      <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-3 overflow-hidden px-4 sm:h-14 sm:px-6 lg:px-8">
+        <Link href="/" className="block h-7 w-[112px] shrink-0 sm:h-8 sm:w-[128px]">
+          <Image
+            src="/brand/corgania-logo.png"
+            alt="Corgania"
+            width={128}
+            height={32}
+            className="!h-full !w-full object-contain object-left"
+            style={{ height: "100%", width: "100%" }}
+            priority
+          />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link href="/account/security" className="hidden text-sm font-medium text-brand-blue hover:underline sm:inline">
             {accountLabel}
           </Link>
           <LanguageSwitcher variant="compact" />
-          <span className="rounded-full bg-surface px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-blue">{label}</span>
+          <span className="hidden rounded-full bg-surface px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-blue md:inline">
+            {label}
+          </span>
           <SignOutButton />
         </div>
       </div>

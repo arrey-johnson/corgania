@@ -9,6 +9,7 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 import type { CountryPresence } from "@/lib/admin/dashboard-data";
+import { COUNTRY_CENTROIDS } from "@/lib/geo/country-centroids";
 import { ISO_N3_TO_A2 } from "@/lib/geo/world-meta";
 
 const GEO_URL = "/geo/countries-110m.json";
@@ -166,6 +167,35 @@ export function WorldPresenceMap({ countries }: { countries: CountryPresence[] }
                 </text>
               </Marker>
             ))}
+
+            {countries
+              .filter((c) => c.role !== "none" && c.total > 0 && COUNTRY_CENTROIDS[c.code])
+              .map((c) => {
+                const coordinates = COUNTRY_CENTROIDS[c.code]!;
+                const fill = roleFill(c.role);
+                const r = Math.min(10, 4 + Math.sqrt(c.total) * 2);
+                return (
+                  <Marker key={`dot-${c.code}`} coordinates={coordinates}>
+                    <g
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={(evt) => {
+                        setTip({
+                          x: evt.clientX,
+                          y: evt.clientY,
+                          title: `${c.name} (${c.code})`,
+                          body: `${c.total} organisation${c.total === 1 ? "" : "s"} · ${c.sellers} seller · ${c.buyers} buyer`,
+                        });
+                      }}
+                      onMouseLeave={() => setTip(null)}
+                      onClick={() => setSelected(c)}
+                    >
+                      <circle r={r + 3} fill={fill} opacity={0.22} />
+                      <circle r={r} fill={fill} stroke="#ffffff" strokeWidth={1.5} />
+                      <circle r={1.6} fill="#ffffff" />
+                    </g>
+                  </Marker>
+                );
+              })}
           </ZoomableGroup>
         </ComposableMap>
 

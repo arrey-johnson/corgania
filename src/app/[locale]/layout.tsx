@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, Noto_Sans_SC } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -34,6 +34,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: { siteName: "Corgania", type: "website", locale },
   };
 }
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;

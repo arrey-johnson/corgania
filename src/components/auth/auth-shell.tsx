@@ -4,9 +4,11 @@ import Image from "next/image";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Input, Label, Card } from "@/components/ui/primitives";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { getPostLoginPath } from "@/app/actions/auth";
+import { sendWelcomeNotification } from "@/app/actions/notify";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -98,6 +100,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" | "forgot" }) {
         });
         if (error) throw error;
         if (data.user) {
+          void sendWelcomeNotification({
+            email: parsed.data.email,
+            fullName: parsed.data.fullName,
+            organisationName: parsed.data.organisationName,
+          });
           router.push("/onboarding");
         }
       }
@@ -155,10 +162,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" | "forgot" }) {
           {mode !== "forgot" && (
             <div>
               <Label htmlFor="password">{t("password")}</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 required
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
               />

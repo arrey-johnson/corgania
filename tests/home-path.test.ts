@@ -15,6 +15,8 @@ const base: SessionContext = {
   userId: "u1",
   orgId: null,
   canTrade: false,
+  canBuy: false,
+  canSell: false,
   isStaff: false,
   roles: [],
   roleLabel: "Staff",

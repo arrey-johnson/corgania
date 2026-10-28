@@ -1,5 +1,5 @@
 import { COUNTRY_CONTINENT, COUNTRY_NAME } from "@/lib/geo/world-meta";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export type CountryPresence = {
   code: string;
@@ -63,7 +63,7 @@ function emptyDashboard(): AdminDashboardData {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const supabase = await createClient();
+  const supabase = createServiceClient() ?? (await createClient());
   if (!supabase) return emptyDashboard();
 
   const [
@@ -89,7 +89,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const appRows = apps ?? [];
   const caseRows = cases ?? [];
 
-  const byCountry = new Map<string, { buyers: number; sellers: number; both: number }>();
+  const byCountry = new Map<string, { buyers: number; sellers: number; both: number; registered: number }>();
   let buyers = 0, sellers = 0, both = 0, approved = 0, pending = 0;
 
   for (const o of orgRows) {
@@ -103,7 +103,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
     const code = String(o.registration_country || "").toUpperCase();
     if (code.length === 2) {
-      const cur = byCountry.get(code) ?? { buyers: 0, sellers: 0, both: 0 };
+      const cur = byCountry.get(code) ?? { buyers: 0, sellers: 0, both: 0, registered: 0 };
+      cur.registered += 1;
       if (buy && sell) cur.both += 1;
       else if (buy) cur.buyers += 1;
       else if (sell) cur.sellers += 1;
@@ -112,11 +113,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   }
 
   const countries: CountryPresence[] = [...byCountry.entries()].map(([code, c]) => {
-    const total = c.buyers + c.sellers + c.both;
+    const capable = c.buyers + c.sellers + c.both;
+    const total = Math.max(capable, c.registered);
     let role: CountryPresence["role"] = "none";
     if (c.both > 0 || (c.buyers > 0 && c.sellers > 0)) role = "both";
     else if (c.buyers > 0) role = "buyer";
     else if (c.sellers > 0) role = "seller";
+    else if (c.registered > 0) role = "seller"; // registered business without flags yet — still show on map
     return {
       code,
       name: COUNTRY_NAME[code] ?? code,

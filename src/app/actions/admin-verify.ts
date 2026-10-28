@@ -128,6 +128,22 @@ export async function requestMoreInfo(formData: FormData): Promise<ActionResult>
       updated_at: new Date().toISOString(),
     }).eq("id", vcase.organization_id);
 
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("legal_name, contact_email")
+      .eq("id", vcase.organization_id)
+      .maybeSingle();
+    if (org?.contact_email) {
+      const { verificationStatusEmail } = await import("@/lib/email/templates");
+      const { sendEmail } = await import("@/lib/providers/email");
+      const tpl = verificationStatusEmail({
+        organisationName: org.legal_name || "Organisation",
+        statusLabel: "More information required",
+        detail: notes,
+      });
+      await sendEmail({ to: org.contact_email, subject: tpl.subject, html: tpl.html, text: tpl.text });
+    }
+
     await writeAudit({
       actorId: session.userId,
       organizationId: vcase.organization_id,
@@ -271,6 +287,24 @@ export async function decideCase(formData: FormData): Promise<ActionResult> {
       planLabel = assigned.grant.label;
     }
     await supabase.from("organizations").update(orgPatch).eq("id", vcase.organization_id);
+
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("legal_name, contact_email")
+      .eq("id", vcase.organization_id)
+      .maybeSingle();
+    if (org?.contact_email) {
+      const { verificationDecisionEmail } = await import("@/lib/email/templates");
+      const { sendEmail } = await import("@/lib/providers/email");
+      const tpl = verificationDecisionEmail({
+        organisationName: org.legal_name || "Organisation",
+        decision: parsed.data.decision,
+        kind: vcase.kind,
+        notes: parsed.data.decisionNotes,
+        planLabel: planLabel || undefined,
+      });
+      await sendEmail({ to: org.contact_email, subject: tpl.subject, html: tpl.html, text: tpl.text });
+    }
 
     await writeAudit({
       actorId: session.userId,

@@ -20,9 +20,17 @@ export default async function OnboardingLayout({ children }: { children: React.R
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-line">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link href="/">
-            <Image src="/brand/corgania-logo.png" alt="Corgania" width={340} height={136} className="h-10 w-auto sm:h-12" />
+        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between gap-4 overflow-hidden px-4 sm:h-14 sm:px-6 lg:px-8">
+          <Link href="/" className="block h-7 w-[112px] shrink-0 sm:h-8 sm:w-[128px]">
+            <Image
+              src="/brand/corgania-logo.png"
+              alt="Corgania"
+              width={128}
+              height={32}
+              className="!h-full !w-full object-contain object-left"
+              style={{ height: "100%", width: "100%" }}
+              priority
+            />
           </Link>
           <div className="flex items-center gap-3">
             <LanguageSwitcher variant="compact" />
